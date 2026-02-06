@@ -34,7 +34,7 @@ export function Footer() {
                         <div className="flex items-center gap-4">
                             {/* X (formerly Twitter) */}
                             <a
-                                href="https://x.com"
+                                href="https://x.com/campworkapp"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 transition-colors hover:text-black dark:hover:text-white"
@@ -46,7 +46,7 @@ export function Footer() {
                             </a>
                             {/* Facebook */}
                             <a
-                                href="https://facebook.com"
+                                href="https://www.facebook.com/share/14XE1SvNqDt/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 transition-colors hover:text-[#1877F2]"
