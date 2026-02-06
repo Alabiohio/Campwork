@@ -15,7 +15,8 @@ import {
     CheckCircle2,
     Clock,
     PlusCircle,
-    MapPin
+    MapPin,
+    Trash2
 } from "lucide-react";
 import { Loading } from "@/components/Loading";
 import { Navbar } from "@/components/Navbar";
@@ -89,11 +90,29 @@ export default function ProfilePage() {
         router.refresh();
     };
 
+    const handleDeleteJob = async (jobId: string) => {
+        if (!confirm("Are you sure you want to delete this gig? This action cannot be undone.")) return;
+
+        try {
+            const { error } = await supabase
+                .from('jobs')
+                .delete()
+                .eq('id', jobId);
+
+            if (error) throw error;
+
+            setUserJobs(prev => prev.filter(job => job.id !== jobId));
+        } catch (error) {
+            console.error("Error deleting job:", error);
+            alert("Failed to delete the gig. Please try again.");
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-black">
                 <Navbar />
-                <Loading text="Loading your profile..." />
+                <Loading text={null} />
             </div>
         );
     }
@@ -258,26 +277,39 @@ export default function ProfilePage() {
                                                 </div>
                                             ) : (
                                                 userJobs.map((job) => (
-                                                    <Link key={job.id} href={`/jobs/${job.id}`}>
-                                                        <div className="group rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl shadow-black/5 hover:border-primary transition-all dark:border-zinc-800 dark:bg-zinc-950">
-                                                            <div className="flex items-start justify-between">
-                                                                <div className="flex flex-col gap-2">
-                                                                    <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{job.title}</h4>
-                                                                    <div className="flex items-center gap-4 text-xs text-zinc-400">
-                                                                        <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {new Date(job.created_at).toLocaleDateString()}</span>
-                                                                        <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {job.location || 'Remote'}</span>
+                                                    <div key={job.id} className="group relative">
+                                                        <Link href={`/jobs/${job.id}`}>
+                                                            <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl shadow-black/5 hover:border-primary transition-all dark:border-zinc-800 dark:bg-zinc-950">
+                                                                <div className="flex items-start justify-between">
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{job.title}</h4>
+                                                                        <div className="flex items-center gap-4 text-xs text-zinc-400">
+                                                                            <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {new Date(job.created_at).toLocaleDateString()}</span>
+                                                                            <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {job.location || 'Remote'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end gap-2 pr-10">
+                                                                        <span className="text-lg font-bold text-primary">${job.budget}</span>
+                                                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${job.status === 'open' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-primary/10 text-primary'
+                                                                            }`}>
+                                                                            {job.status}
+                                                                        </span>
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex flex-col items-end gap-2">
-                                                                    <span className="text-lg font-bold text-primary">${job.budget}</span>
-                                                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${job.status === 'open' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-primary/10 text-primary'
-                                                                        }`}>
-                                                                        {job.status}
-                                                                    </span>
-                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </Link>
+                                                        </Link>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteJob(job.id);
+                                                            }}
+                                                            className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                                                            title="Delete Gig"
+                                                        >
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </button>
+                                                    </div>
                                                 ))
                                             )}
                                         </>

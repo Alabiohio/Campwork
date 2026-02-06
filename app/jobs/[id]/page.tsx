@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Briefcase, Calendar, Clock, DollarSign, MapPin, Share2, ShieldCheck, User, Loader2, X, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Briefcase, Calendar, Clock, DollarSign, MapPin, Share2, ShieldCheck, User, Loader2, X, Send, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Loading } from "@/components/Loading";
@@ -130,6 +130,28 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         } catch (err: any) {
             console.error("Error submitting proposal:", err);
             setError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm("Are you sure you want to delete this gig? This action cannot be undone.")) return;
+
+        setSubmitting(true);
+        try {
+            const { error: deleteError } = await supabase
+                .from('jobs')
+                .delete()
+                .eq('id', id);
+
+            if (deleteError) throw deleteError;
+
+            router.push('/profile');
+            router.refresh();
+        } catch (err: any) {
+            console.error("Error deleting job:", err);
+            alert(err.message || "Failed to delete the gig.");
         } finally {
             setSubmitting(false);
         }
@@ -286,6 +308,14 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                             className="w-full rounded-xl bg-primary py-2 text-sm font-bold text-white hover:bg-primary/90"
                                         >
                                             View Proposals
+                                        </button>
+                                        <button
+                                            disabled={submitting}
+                                            onClick={handleDelete}
+                                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/20 transition-all disabled:opacity-50"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            Delete Gig
                                         </button>
                                     </div>
                                 ) : (
