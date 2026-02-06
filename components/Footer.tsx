@@ -121,10 +121,13 @@ export function Footer() {
                         © 2026 Campwork.
                     </p>
                     <div className="mt-4 flex items-center gap-6 sm:mt-0">
-                        <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-500">
+                        <a
+                            href="mailto:contact.campwork@gmail.com?body=I%20want%20to%20support%20the%20development"
+                            className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-primary"
+                        >
                             <Mail className="h-4 w-4" />
-                            hello@campwork.store
-                        </span>
+                            contact.campwork@gmail.com
+                        </a>
                     </div>
                 </div>
             </div>
