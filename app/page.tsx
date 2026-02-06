@@ -36,10 +36,9 @@ export default function Home() {
 
       <nav className="fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between px-2 sm:px-2 lg:px-2 bg-white/80 backdrop-blur-md dark:bg-black/80 dark:border-zinc-800 sm:px-16">
         <div className="flex items-center gap-2 text-2xl font-black tracking-tighter">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
-            C
-          </div>
-          <span className="text-zinc-900 dark:text-white">Campwork</span>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/assets/logo1.png" alt="Campwork Logo" className="h-48 w-auto object-contain" />
+          </Link>
         </div>
         <div className="flex items-center gap-6">
           <Link href="/jobs" className="hidden sm:block rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/10">

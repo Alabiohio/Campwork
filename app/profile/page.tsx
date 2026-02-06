@@ -11,14 +11,13 @@ import {
     Calendar,
     Settings,
     LogOut,
-    Loader2,
-    PlusCircle,
-    ChevronRight,
-    MapPin,
     PenSquare,
     CheckCircle2,
-    Clock
+    Clock,
+    PlusCircle,
+    MapPin
 } from "lucide-react";
+import { Loading } from "@/components/Loading";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
@@ -94,8 +93,7 @@ export default function ProfilePage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-black">
                 <Navbar />
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="mt-4 text-zinc-500 font-medium">Loading your profile...</p>
+                <Loading text="Loading your profile..." />
             </div>
         );
     }
@@ -308,7 +306,7 @@ export default function ProfilePage() {
                                                                 <div className="flex flex-col items-end gap-2">
                                                                     <span className="text-lg font-bold text-primary">${proposal.bid_amount}</span>
                                                                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${proposal.status === 'accepted' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                                                                            proposal.status === 'pending' ? 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800' : 'bg-red-50 text-red-600'
+                                                                        proposal.status === 'pending' ? 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800' : 'bg-red-50 text-red-600'
                                                                         }`}>
                                                                         {proposal.status}
                                                                     </span>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Lock, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Loading } from "@/components/Loading";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -155,7 +156,7 @@ export default function SignupPage() {
                                 className="group mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-bold text-white hover:bg-primary/90 disabled:opacity-50 transition-all shadow-lg shadow-primary/20"
                             >
                                 {loading ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <Loading size={24} text="" />
                                 ) : (
                                     <>
                                         Get Started

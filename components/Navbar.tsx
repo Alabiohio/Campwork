@@ -40,9 +40,8 @@ export function Navbar() {
         <nav className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md dark:bg-black/80">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-2 sm:px-2 lg:px-2">
                 <div className="flex items-center gap-8">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tighter text-black dark:text-white">
-                        <span className="rounded-lg bg-primary px-2 py-1 text-white">C</span>
-                        <span>Campwork</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <img src="/assets/logo1.png" alt="Campwork Logo" className="h-48 w-auto object-contain" />
                     </Link>
 
                     <div className="hidden md:flex items-center gap-6">

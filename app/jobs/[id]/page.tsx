@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Briefcase, Calendar, Clock, DollarSign, MapPin, Share2, ShieldCheck, User, Loader2, X, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
+import { Loading } from "@/components/Loading";
 import { supabase } from "@/lib/supabase";
 import type { Job, Profile, Proposal } from "@/types";
 import { Footer } from "@/components/Footer";
@@ -138,8 +139,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-black">
                 <Navbar />
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="mt-4 text-zinc-500 font-medium">Loading gig details...</p>
+                <Loading text="Loading gig details..." />
             </div>
         );
     }
@@ -419,7 +419,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                             className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-white hover:bg-primary/90 disabled:opacity-50"
                                         >
                                             {submitting ? (
-                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <Loading size={24} text="" />
                                             ) : (
                                                 <>
                                                     <Send className="h-5 w-5" />

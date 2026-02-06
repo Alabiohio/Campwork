@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, SlidersHorizontal, Loader2, X } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { JobCard } from "@/components/JobCard";
+import { Loading } from "@/components/Loading";
 import { supabase } from "@/lib/supabase";
 import type { Job } from "@/types";
 import Link from "next/link";
@@ -159,10 +160,7 @@ export default function JobsPage() {
 
                     {/* Jobs Listing */}
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-24 gap-4">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-zinc-500 font-medium">Loading campus gigs...</p>
-                        </div>
+                        <Loading text="Loading campus gigs..." />
                     ) : error ? (
                         <div className="rounded-3xl border border-red-100 bg-red-50 p-8 text-center dark:border-red-900/30 dark:bg-red-950/20">
                             <p className="text-red-600 dark:text-red-400 font-medium">Failed to load jobs: {error}</p>

@@ -18,8 +18,7 @@ export function Footer() {
                     {/* Logo and Brand */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
                         <Link href="/" className="flex items-center gap-2 text-2xl font-black tracking-tighter text-black dark:text-white">
-                            <span className="rounded-lg bg-primary px-2 py-1 text-white">C</span>
-                            <span>Campwork</span>
+                            <img src="/assets/logo1.png" alt="Campwork Logo" className="h-14 w-auto object-contain" />
                         </Link>
                         <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
                             The premier marketplace for university students to find gigs, build portfolios, and earn while they learn.

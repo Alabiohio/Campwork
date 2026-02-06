@@ -2,7 +2,8 @@
 
 import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Loading } from "@/components/Loading";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -101,7 +102,7 @@ function LoginForm() {
                     className="group mt-2 flex items-center justify-center gap-2 rounded-xl bg-black py-3.5 font-bold text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 disabled:opacity-50 transition-all shadow-lg shadow-black/5"
                 >
                     {loading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Loading size={24} text="" />
                     ) : (
                         <>
                             Log In
@@ -143,7 +144,7 @@ export default function LoginPage() {
 
                     <Suspense fallback={
                         <div className="flex items-center justify-center rounded-3xl border border-zinc-200 bg-white p-12 shadow-xl shadow-black/5 dark:border-zinc-800 dark:bg-zinc-950">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loading text="Preparing login..." />
                         </div>
                     }>
                         <LoginForm />
