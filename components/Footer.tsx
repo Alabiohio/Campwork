@@ -23,8 +23,8 @@ export function Footer() {
                                 src="/assets/logo1.png"
                                 alt="Campwork Logo"
                                 width={180}
-                                height={56}
-                                className="h-14 w-auto object-contain"
+                                height={2}
+                                className="h-44 w-auto object-contain"
                                 priority
                             />
                         </Link>

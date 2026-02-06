@@ -5,7 +5,7 @@ import logoAnimation from "@/public/loaders/logo.json";
 
 interface LoadingProps {
     size?: number;
-    text?: string;
+    text?: string | null;
     fullScreen?: boolean;
 }
 

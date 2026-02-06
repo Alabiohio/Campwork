@@ -160,7 +160,7 @@ export default function JobsPage() {
 
                     {/* Jobs Listing */}
                     {loading ? (
-                        <Loading text="Loading campus gigs..." />
+                        <Loading text={null} />
                     ) : error ? (
                         <div className="rounded-3xl border border-red-100 bg-red-50 p-8 text-center dark:border-red-900/30 dark:bg-red-950/20">
                             <p className="text-red-600 dark:text-red-400 font-medium">Failed to load jobs: {error}</p>
