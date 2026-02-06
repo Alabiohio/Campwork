@@ -167,26 +167,14 @@ export default function Home() {
           transition={{ duration: 1 }}
           className="absolute inset-0 z-0 lg:left-1/2"
         >
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden lg:rotate-10 lg:scale-105">
             <img
               src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=1600&fit=crop&q=80"
               alt="Students collaborating"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover lg:[mask-image:linear-gradient(to_right,transparent,black_20%)]"
             />
             {/* Mobile Overlay: Darkens the image to make text readable */}
             <div className="absolute inset-0 bg-black/60 lg:hidden" />
-
-            {/* Desktop Fade: Smooth transition from background to image */}
-            {mounted && (
-              <div
-                className="hidden lg:block absolute inset-0 transition-opacity duration-300"
-                style={{
-                  background: resolvedTheme === 'dark'
-                    ? 'linear-gradient(to right, #0a0a0a 0%, rgba(10, 10, 10, 0.8) 30%, transparent 50%)'
-                    : 'linear-gradient(to right, #ffffff 0%, rgba(255, 255, 255, 0.8) 30%, transparent 50%)',
-                }}
-              />
-            )}
           </div>
         </motion.div>
 
