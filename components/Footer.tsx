@@ -22,9 +22,9 @@ export function Footer() {
                             <Image
                                 src="/assets/logo1.png"
                                 alt="Campwork Logo"
-                                width={180}
-                                height={56}
-                                className="h-14 w-auto object-contain"
+                                width={144}
+                                height={2}
+                                className="h-32 w-auto object-contain"
                                 priority
                             />
                         </Link>
@@ -34,7 +34,7 @@ export function Footer() {
                         <div className="flex items-center gap-4">
                             {/* X (formerly Twitter) */}
                             <a
-                                href="https://x.com"
+                                href="https://x.com/campworkapp"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 transition-colors hover:text-black dark:hover:text-white"
@@ -46,7 +46,7 @@ export function Footer() {
                             </a>
                             {/* Facebook */}
                             <a
-                                href="https://facebook.com"
+                                href="https://www.facebook.com/share/14XE1SvNqDt/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 transition-colors hover:text-[#1877F2]"
@@ -121,10 +121,13 @@ export function Footer() {
                         © 2026 Campwork.
                     </p>
                     <div className="mt-4 flex items-center gap-6 sm:mt-0">
-                        <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-500">
+                        <a
+                            href="mailto:contact.campwork@gmail.com?body=I%20want%20to%20support%20the%20development"
+                            className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-primary"
+                        >
                             <Mail className="h-4 w-4" />
-                            hello@campwork.store
-                        </span>
+                            contact.campwork@gmail.com
+                        </a>
                     </div>
                 </div>
             </div>
