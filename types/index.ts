@@ -44,3 +44,39 @@ export type Notification = {
     is_read: boolean;
     created_at: string;
 };
+
+export type Product = {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    category: string;
+    location?: string;
+    image_url: string;
+    status: 'active' | 'sold';
+    seller_id: string;
+    created_at: string;
+    profiles?: Profile;
+};
+export type Conversation = {
+    id: string;
+    participant_1: string;
+    participant_2: string;
+    job_id?: string;
+    product_id?: string;
+    last_message?: string;
+    updated_at: string;
+    created_at: string;
+    profiles?: Profile; // Used for the "other" person in listings
+    products?: Product;
+    jobs?: Job;
+};
+
+export type Message = {
+    id: string;
+    conversation_id: string;
+    sender_id: string;
+    content: string;
+    is_read: boolean;
+    created_at: string;
+};

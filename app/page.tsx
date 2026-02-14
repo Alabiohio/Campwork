@@ -3,26 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Briefcase, GraduationCap, ShieldCheck, User as UserIcon, Moon, Sun, Monitor } from "lucide-react";
+import { ArrowRight, Briefcase, GraduationCap, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Footer } from "@/components/Footer";
-import { useTheme } from "next-themes";
+
+import { Navbar } from "@/components/Navbar";
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [scrolled, setScrolled] = useState(false);
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -36,21 +27,8 @@ export default function Home() {
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  const getThemeIcon = () => {
-    if (!mounted) return <Monitor className="h-5 w-5" />;
-    switch (theme) {
-      case "light":
-        return <Sun className="h-5 w-5" />;
-      case "dark":
-        return <Moon className="h-5 w-5" />;
-      default:
-        return <Monitor className="h-5 w-5" />;
-    }
-  };
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
@@ -60,103 +38,7 @@ export default function Home() {
         <div className="absolute top-[20%] -right-[10%] h-[60%] w-[50%] rounded-full bg-primary/10 blur-[120px]" />
       </div>
 
-      <nav className={`fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between px-6 transition-all duration-300 sm:px-16 ${scrolled
-        ? "bg-white/80 backdrop-blur-md dark:bg-black/80 h-16"
-        : "bg-transparent h-20"
-        }`}>
-        <div className="flex items-center gap-2 text-2xl font-black tracking-tighter">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/assets/logo1.png" alt="Campwork Logo" className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'}`} />
-          </Link>
-        </div>
-        <div className="flex items-center gap-6">
-          {mounted && (
-            <div className="relative">
-              <button
-                onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-                className={`p-2 rounded-full transition-all duration-300 ${scrolled
-                  ? "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                  : "bg-white/10 lg:bg-transparent text-white lg:text-zinc-700 lg:dark:text-zinc-300 hover:bg-white/20 lg:hover:bg-zinc-100/50"
-                  }`}
-              >
-                {getThemeIcon()}
-              </button>
-
-              {themeMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setThemeMenuOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-40 rounded-xl shadow-lg overflow-hidden z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-                    <button
-                      onClick={() => {
-                        setTheme("light");
-                        setThemeMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${theme === "light"
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-                        }`}
-                    >
-                      <Sun className="h-4 w-4" />
-                      Light
-                    </button>
-                    <button
-                      onClick={() => {
-                        setTheme("dark");
-                        setThemeMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${theme === "dark"
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-                        }`}
-                    >
-                      <Moon className="h-4 w-4" />
-                      Dark
-                    </button>
-                    <button
-                      onClick={() => {
-                        setTheme("system");
-                        setThemeMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${theme === "system"
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-                        }`}
-                    >
-                      <Monitor className="h-4 w-4" />
-                      System
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-          <Link href="/jobs" className={`hidden sm:block rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/10 ${!scrolled && 'lg:bg-white lg:text-primary lg:hover:bg-zinc-100'}`}>
-            Explore Jobs
-          </Link>
-          {!loading && (
-            <>
-              {user ? (
-                <Link href="/profile" className={`flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors ${scrolled
-                  ? "border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-                  : "border-white/30 hover:bg-white/10 text-white lg:border-zinc-200 lg:text-zinc-700 lg:hover:bg-zinc-50 lg:dark:text-zinc-300"
-                  }`}>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
-                    <UserIcon className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-semibold">
-                    {user.user_metadata?.full_name?.split(' ')[0] || 'Profile'}
-                  </span>
-                </Link>
-              ) : (
-                <Link href="/auth/login" className={`text-sm font-semibold transition-colors ${scrolled ? 'text-zinc-700 hover:text-primary' : 'text-white lg:text-zinc-700 lg:hover:text-primary dark:text-white'}`}>Login</Link>
-              )}
-            </>
-          )}
-        </div>
-      </nav>
+      <Navbar isTransparent />
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center lg:pt-20 pt-24 pb-20 overflow-hidden">
@@ -261,7 +143,90 @@ export default function Home() {
         </motion.div>
       </section>
 
+
+      {/* Marketplace Teaser Section */}
+      <section className="w-full px-8 sm:px-16 py-24 overflow-hidden relative">
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/3 aspect-square bg-primary/5 blur-[120px] -z-10 rounded-full" />
+
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-primary">
+              New: Student Marketplace 🛍️
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-[900] tracking-tight text-zinc-900 dark:text-white mb-6">
+              Buy & Sell <span className="text-primary tracking-tighter">Student Essentials.</span>
+            </h2>
+            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
+              From textbooks and course materials to gadgets and fashion. Our marketplace is built exclusively for students to trade safely on campus.
+            </p>
+
+            <ul className="space-y-4 mb-10">
+              {[
+                "List items in seconds with your phone",
+                "Connect with buyers via in-app chat",
+                "Exclusively for verified students",
+                "Find deals right on your campus"
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300 font-medium">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href="/products"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-8 text-lg font-bold text-white hover:bg-black transition-all shadow-xl dark:bg-white dark:text-black dark:hover:bg-zinc-100"
+            >
+              Explore Marketplace
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative"
+          >
+            <div className="relative rounded-[3rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-2xl skew-y-2 hover:skew-y-0 transition-transform duration-700">
+              <img
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=1000&fit=crop"
+                alt="Student marketplace items"
+                className="w-full h-auto"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-10">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 w-full">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white font-bold">Calculus Textbook</span>
+                    <span className="text-primary font-black">$25</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="px-2 py-1 rounded-md bg-white/10 text-[10px] text-white/80 uppercase font-bold tracking-widest">Books</span>
+                    <span className="px-2 py-1 rounded-md bg-white/10 text-[10px] text-white/80 uppercase font-bold tracking-widest">Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating decoration */}
+            <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white font-black text-xl rotate-12 shadow-xl">
+              SALE
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
+
       <section className="w-full px-8 sm:px-16 py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
