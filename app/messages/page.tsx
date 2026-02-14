@@ -123,11 +123,13 @@ export default function MessagesPage() {
     useEffect(() => {
         if (!selectedConversation) return;
 
+        const conversationId = selectedConversation.id;
+
         async function fetchMessages() {
             const { data, error } = await supabase
                 .from('messages')
                 .select('*')
-                .eq('conversation_id', selectedConversation.id)
+                .eq('conversation_id', conversationId)
                 .order('created_at', { ascending: true });
 
             if (!error) setMessages(data || []);
@@ -137,12 +139,12 @@ export default function MessagesPage() {
 
         // Subscribe to new messages
         const channel = supabase
-            .channel(`conv_${selectedConversation.id}`)
+            .channel(`conv_${conversationId}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'messages',
-                filter: `conversation_id=eq.${selectedConversation.id}`
+                filter: `conversation_id=eq.${conversationId}`
             }, (payload) => {
                 const newMessage = payload.new as Message;
 
@@ -178,11 +180,12 @@ export default function MessagesPage() {
         e.preventDefault();
         const content = newMessage.trim();
         if (!content || !selectedConversation || !currentUser) return;
+        const conversationId = selectedConversation.id;
 
         // Optimistic message
         const optimisticMsg: Message = {
             id: `temp-${Date.now()}`,
-            conversation_id: selectedConversation.id,
+            conversation_id: conversationId,
             sender_id: currentUser.id,
             content: content,
             is_read: false,
@@ -196,7 +199,7 @@ export default function MessagesPage() {
             const { error } = await supabase
                 .from('messages')
                 .insert({
-                    conversation_id: selectedConversation.id,
+                    conversation_id: conversationId,
                     sender_id: currentUser.id,
                     content: content
                 });
@@ -210,7 +213,7 @@ export default function MessagesPage() {
                     last_message: content,
                     updated_at: new Date().toISOString()
                 })
-                .eq('id', selectedConversation.id);
+                .eq('id', conversationId);
 
         } catch (err) {
             console.error("Error sending message:", err);
