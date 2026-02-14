@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,7 +22,7 @@ import type { Conversation, Message, Profile } from "@/types";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
 
-export default function MessagesPage() {
+function MessagesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const targetUserId = searchParams.get("user");
@@ -366,5 +366,20 @@ export default function MessagesPage() {
 
             </main>
         </div>
+    );
+}
+
+export default function MessagesPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-zinc-50 dark:bg-black">
+                <Navbar />
+                <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+                    <Loading text="Loading messages..." />
+                </div>
+            </div>
+        }>
+            <MessagesContent />
+        </Suspense>
     );
 }
