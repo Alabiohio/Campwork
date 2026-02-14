@@ -20,6 +20,7 @@ import { Loading } from "@/components/Loading";
 import { supabase } from "@/lib/supabase";
 import type { Conversation, Message, Profile } from "@/types";
 import { Footer } from "@/components/Footer";
+import Link from "next/link";
 
 export default function MessagesPage() {
     const router = useRouter();
