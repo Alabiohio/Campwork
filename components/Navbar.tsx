@@ -15,6 +15,7 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
     const pathname = usePathname();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
     const [scrolled, setScrolled] = useState(false);
     const { theme, setTheme } = useTheme();
@@ -49,6 +50,41 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
             setMobileMenuOpen(false);
         };
     }, []);
+
+    useEffect(() => {
+        if (!user) {
+            setUnreadMessagesCount(0);
+            return;
+        }
+
+        const fetchUnreadCount = async () => {
+            const { count } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .or('is_read.eq.false,is_read.is.null')
+                .neq('sender_id', user.id);
+
+            setUnreadMessagesCount(count || 0);
+        };
+
+        fetchUnreadCount();
+
+        const channel = supabase
+            .channel('navbar_messages_count')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'messages'
+            }, () => {
+                // Add a small delay to ensure the DB update has fully propagated
+                setTimeout(fetchUnreadCount, 500);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
 
     const getThemeIcon = () => {
         if (!mounted) return <Monitor className="h-5 w-5" />;
@@ -85,19 +121,26 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
                             {[
                                 { href: "/jobs", label: "Find Jobs" },
                                 { href: "/products", label: "Marketplace" },
-                                ...(user ? [{ href: "/messages", label: "Messages" }] : []),
-                            ].map((link) => {
+                                ...(user ? [{ href: "/messages", label: "Messages", badge: unreadMessagesCount }] : []),
+                            ].map((link: any) => {
                                 const isActive = pathname === link.href;
                                 return (
                                     <Link
                                         key={link.href}
                                         href={link.href}
                                         className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 rounded-lg group ${isTransparent && !scrolled
-                                                ? (isActive ? 'text-white' : 'text-zinc-300 hover:text-white')
-                                                : (isActive ? 'text-primary' : 'text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white')
+                                            ? (isActive ? 'text-white' : 'text-zinc-300 hover:text-white')
+                                            : (isActive ? 'text-primary' : 'text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white')
                                             }`}
                                     >
-                                        <span className="relative z-10">{link.label}</span>
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            {link.label}
+                                            {typeof link.badge === 'number' && link.badge > 0 ? (
+                                                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] font-black text-white shrink-0">
+                                                    {link.badge > 99 ? '99+' : link.badge}
+                                                </span>
+                                            ) : null}
+                                        </span>
                                         {isActive ? (
                                             <motion.div
                                                 layoutId="navIndicator"
@@ -178,15 +221,14 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
                                             <span>Post a Job</span>
                                         </Link>
                                         <NotificationBell />
-                                        
+
                                         <div className="hidden sm:block relative">
-                                            <button 
+                                            <button
                                                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                                className={`rounded-full border-2 p-2.5 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${
-                                                    isTransparent && !scrolled 
-                                                        ? 'border-white/30 text-white hover:bg-white/10 hover:border-white/50' 
-                                                        : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:border-zinc-600'
-                                                }`}
+                                                className={`rounded-full border-2 p-2.5 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${isTransparent && !scrolled
+                                                    ? 'border-white/30 text-white hover:bg-white/10 hover:border-white/50'
+                                                    : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:border-zinc-600'
+                                                    }`}
                                             >
                                                 <User className="h-5 w-5" />
                                             </button>
@@ -209,9 +251,9 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
 
                                                             {[
                                                                 { href: "/profile", label: "My Profile", icon: <User className="h-4 w-4" /> },
-                                                                { href: "/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
+                                                                { href: "/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" />, badge: unreadMessagesCount },
                                                                 { href: "/settings", label: "Account Settings", icon: <Settings className="h-4 w-4" /> },
-                                                            ].map((item) => (
+                                                            ].map((item: any) => (
                                                                 <Link
                                                                     key={item.href}
                                                                     href={item.href}
@@ -219,7 +261,14 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
                                                                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all group"
                                                                 >
                                                                     <span className="text-zinc-400 group-hover:text-primary transition-colors">{item.icon}</span>
-                                                                    {item.label}
+                                                                    <span className="relative flex-1 flex items-center justify-between">
+                                                                        {item.label}
+                                                                        {typeof item.badge === 'number' && item.badge > 0 && (
+                                                                            <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-[10px] font-black text-white ml-2">
+                                                                                {item.badge}
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
                                                                 </Link>
                                                             ))}
 
@@ -316,8 +365,8 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
                                         { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
                                         { href: "/jobs", label: "Find Jobs", icon: <Briefcase className="w-5 h-5" /> },
                                         { href: "/products", label: "Marketplace", icon: <ShoppingBag className="w-5 h-5" /> },
-                                        ...(user ? [{ href: "/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" /> }] : []),
-                                    ].map((link, idx) => (
+                                        ...(user ? [{ href: "/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" />, badge: unreadMessagesCount }] : []),
+                                    ].map((link: any, idx) => (
                                         <motion.div
                                             key={link.href}
                                             initial={{ opacity: 0, x: 20 }}
@@ -338,7 +387,14 @@ export function Navbar({ isTransparent = false }: { isTransparent?: boolean }) {
                                                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/50 group-hover:w-full transition-all duration-300" />
                                                     </span>
                                                 </span>
-                                                <ChevronRight className="w-5 h-5 text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 group-hover:text-primary transition-all duration-300" />
+                                                <div className="flex items-center gap-3 ml-auto">
+                                                    {typeof link.badge === 'number' && link.badge > 0 && (
+                                                        <span className="flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary text-[12px] font-black text-white">
+                                                            {link.badge > 99 ? '99+' : link.badge}
+                                                        </span>
+                                                    )}
+                                                    <ChevronRight className="w-5 h-5 text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 group-hover:text-primary transition-all duration-300" />
+                                                </div>
                                             </Link>
                                         </motion.div>
                                     ))}

@@ -70,6 +70,9 @@ export type Conversation = {
     profiles?: Profile; // Used for the "other" person in listings
     products?: Product;
     jobs?: Job;
+    other_profile?: Profile;
+    unread_count?: number;
+    is_typing?: boolean;
 };
 
 export type Message = {
@@ -77,6 +80,7 @@ export type Message = {
     conversation_id: string;
     sender_id: string;
     content: string;
+    image_url?: string;
     is_read: boolean;
     created_at: string;
 };

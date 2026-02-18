@@ -7,11 +7,15 @@ import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
+import { jobSchema } from "@/lib/validations";
+import { ZodError } from "zod";
+
 export default function CreateJobPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const [form, setForm] = useState({
         title: "",
@@ -37,9 +41,6 @@ export default function CreateJobPage() {
                     console.error("Profile check failed:", profileError);
                     setError("Your profile hasn't been set up yet. Try logging out and back in, or contact support.");
                 }
-            } else {
-                // For MVP testing, you might want to redirect to login
-                // router.push("/auth/login");
             }
         };
         checkUser();
@@ -49,6 +50,7 @@ export default function CreateJobPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setFormErrors({});
 
         if (!userId) {
             setError("You must be logged in to post a job.");
@@ -58,6 +60,24 @@ export default function CreateJobPage() {
 
         try {
             const skillArray = form.skills.split(",").map(s => s.trim()).filter(s => s !== "");
+
+            // Zod Validation
+            const validationResult = jobSchema.safeParse({
+                ...form,
+                budget: parseFloat(form.budget),
+                skills_required: skillArray
+            });
+
+            if (!validationResult.success) {
+                const errors: Record<string, string> = {};
+                validationResult.error.issues.forEach(issue => {
+                    const path = issue.path[0] as string;
+                    errors[path] = issue.message;
+                });
+                setFormErrors(errors);
+                setLoading(false);
+                return;
+            }
 
             // Verify profile exists before inserting
             const { data: profileCheck, error: profileCheckError } = await supabase
@@ -70,19 +90,13 @@ export default function CreateJobPage() {
                 throw new Error(`Profile not found. Please try logging out and back in.`);
             }
 
-            const payload = {
-                title: form.title,
-                budget: parseInt(form.budget),
-                category: form.category,
-                description: form.description,
-                skills_required: skillArray,
-                client_id: userId,
-                status: 'open'
-            };
-
             const { error: insertError } = await supabase
                 .from('jobs')
-                .insert([payload]);
+                .insert([{
+                    ...validationResult.data,
+                    client_id: userId,
+                    status: 'open'
+                }]);
 
             if (insertError) throw insertError;
 
@@ -155,8 +169,9 @@ export default function CreateJobPage() {
                                 value={form.title}
                                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                                 placeholder="e.g. React Developer for Campus App"
-                                className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+                                className={`rounded-xl border bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:ring-4 focus:ring-primary/10 dark:bg-zinc-900 dark:text-zinc-100 ${formErrors.title ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                             />
+                            {formErrors.title && <p className="text-xs font-medium text-red-500">{formErrors.title}</p>}
                         </div>
 
                         <div className="grid gap-6 md:grid-cols-2">
@@ -168,8 +183,9 @@ export default function CreateJobPage() {
                                     value={form.budget}
                                     onChange={(e) => setForm({ ...form, budget: e.target.value })}
                                     placeholder="250"
-                                    className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+                                    className={`rounded-xl border bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:ring-4 focus:ring-primary/10 dark:bg-zinc-900 dark:text-zinc-100 ${formErrors.budget ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                                 />
+                                {formErrors.budget && <p className="text-xs font-medium text-red-500">{formErrors.budget}</p>}
                             </div>
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Category</label>
@@ -195,8 +211,9 @@ export default function CreateJobPage() {
                                 value={form.description}
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 placeholder="Tell us about the project, the scope of work, and what you're looking for..."
-                                className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+                                className={`rounded-xl border bg-zinc-50 px-4 py-3 text-sm outline-none transition-all focus:ring-4 focus:ring-primary/10 dark:bg-zinc-900 dark:text-zinc-100 ${formErrors.description ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                             />
+                            {formErrors.description && <p className="text-xs font-medium text-red-500">{formErrors.description}</p>}
                         </div>
 
                         <div className="flex flex-col gap-1.5">

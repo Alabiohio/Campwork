@@ -12,10 +12,13 @@ import Link from "next/link";
 
 const CATEGORIES = ["Gadgets", "Books", "Bags", "Course Materials", "Digital Products", "Fashion", "Other"];
 
+import { productSchema } from "@/lib/validations";
+
 export default function CreateProductPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [user, setUser] = useState<any>(null);
 
     const [formData, setFormData] = useState({
@@ -66,6 +69,10 @@ export default function CreateProductPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
+
+        setError(null);
+        setFormErrors({});
+
         if (!image) {
             setError("Please upload a product image.");
             return;
@@ -73,7 +80,28 @@ export default function CreateProductPage() {
 
         try {
             setLoading(true);
-            setError(null);
+
+            // Zod Validation
+            const validationResult = productSchema.safeParse({
+                ...formData,
+                price: parseFloat(formData.price),
+                image_url: "https://placeholder.com" // Temporary for validation, will be replaced by real URL
+            });
+
+            if (!validationResult.success) {
+                const errors: Record<string, string> = {};
+                validationResult.error.issues.forEach(issue => {
+                    const path = issue.path[0] as string;
+                    if (path !== 'image_url') {
+                        errors[path] = issue.message;
+                    }
+                });
+                if (Object.keys(errors).length > 0) {
+                    setFormErrors(errors);
+                    setLoading(false);
+                    return;
+                }
+            }
 
             // 1. Upload image to Cloudinary
             const imageUrl = await uploadToCloudinary(image);
@@ -181,8 +209,9 @@ export default function CreateProductPage() {
                                     placeholder="Blue Backpack, Calculus Textbook, etc."
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="rounded-xl border border-zinc-200 bg-transparent px-4 py-3 text-sm outline-none transition-all focus:border-primary dark:border-zinc-800"
+                                    className={`rounded-xl border bg-transparent px-4 py-3 text-sm outline-none transition-all dark:bg-zinc-900 ${formErrors.title ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                                 />
+                                {formErrors.title && <p className="text-xs font-medium text-red-500">{formErrors.title}</p>}
                             </div>
                             <div className="flex flex-col gap-2">
                                 <label className="text-sm font-bold uppercase tracking-wider text-zinc-400">Price ($)</label>
@@ -193,8 +222,9 @@ export default function CreateProductPage() {
                                     placeholder="0.00"
                                     value={formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    className="rounded-xl border border-zinc-200 bg-transparent px-4 py-3 text-sm outline-none transition-all focus:border-primary dark:border-zinc-800"
+                                    className={`rounded-xl border bg-transparent px-4 py-3 text-sm outline-none transition-all dark:bg-zinc-900 ${formErrors.price ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                                 />
+                                {formErrors.price && <p className="text-xs font-medium text-red-500">{formErrors.price}</p>}
                             </div>
                         </div>
 
@@ -231,8 +261,9 @@ export default function CreateProductPage() {
                                 placeholder="Describe your product (condition, features, etc.)"
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="rounded-xl border border-zinc-200 bg-transparent px-4 py-3 text-sm outline-none transition-all focus:border-primary dark:border-zinc-800"
+                                className={`rounded-xl border bg-transparent px-4 py-3 text-sm outline-none transition-all dark:bg-zinc-900 ${formErrors.description ? "border-red-500 focus:border-red-500" : "border-zinc-200 focus:border-primary dark:border-zinc-800"}`}
                             />
+                            {formErrors.description && <p className="text-xs font-medium text-red-500">{formErrors.description}</p>}
                         </div>
 
                         <button
