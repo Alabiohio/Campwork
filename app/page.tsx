@@ -136,6 +136,8 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function ComingSoon() {
   const [email, setEmail] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [notified, setNotified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -146,6 +148,10 @@ export default function ComingSoon() {
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+    if (!marketingConsent || !privacyConsent) {
+      alert("Please agree to the privacy policy and marketing messages to proceed.");
+      return;
+    }
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -198,30 +204,16 @@ export default function ComingSoon() {
       {/* ── Top bar ── */}
       <motion.header
         {...fadeUp(0.1)}
-        className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-8"
+        className="relative z-10 flex items-center justify-center px-6 md:px-12 pt-8"
       >
         <Link href="/" className="flex items-center gap-3 group">
           <img src="/assets/logo1.png" alt="Campwork" className="h-9 w-auto object-contain" />
         </Link>
-        {/* status pill */}
-        <div
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            color: "rgba(255,255,255,0.5)",
-          }}
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ background: "#A3133A" }} />
-            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#A3133A" }} />
-          </span>
-          In Development
-        </div>
+
       </motion.header>
 
       {/* ── Main content ── */}
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-20 text-center">
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 sm:px-12 py-20 text-center">
 
         {/* eyebrow */}
         <motion.div {...fadeUp(0.25)} className="mb-6">
@@ -292,33 +284,84 @@ export default function ComingSoon() {
                 onSubmit={handleNotify}
                 className="relative flex items-center"
               >
-                <input
-                  id="notify-email"
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-full py-4 pl-6 pr-36 text-sm text-white placeholder:text-zinc-600 focus:outline-none transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    backdropFilter: "blur(16px)",
-                  }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(163,19,58,0.6)")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-6 text-sm font-bold text-white transition-all duration-200 disabled:opacity-60 flex items-center gap-2"
-                  style={{
-                    background: "linear-gradient(135deg, #c4153d 0%, #8a0e28 100%)",
-                    boxShadow: "0 4px 24px rgba(163,19,58,0.4)",
-                  }}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
-                </button>
+                <div className="relative flex flex-col w-full gap-4">
+                  <div className="relative flex items-center">
+                    <input
+                      id="notify-email"
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full rounded-full py-4 pl-6 pr-36 text-sm text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        backdropFilter: "blur(16px)",
+                      }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(163,19,58,0.6)")}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-6 text-sm font-bold text-white transition-all duration-200 disabled:opacity-60 flex items-center gap-2"
+                      style={{
+                        background: "linear-gradient(135deg, #c4153d 0%, #8a0e28 100%)",
+                        boxShadow: "0 4px 24px rgba(163,19,58,0.4)",
+                      }}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 px-2">
+                    {/* Marketing Consent */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex bg-white/5 border border-white/10 rounded-md p-0.5 mt-0.5">
+                        <input
+                          id="marketing-consent"
+                          type="checkbox"
+                          required
+                          checked={marketingConsent}
+                          onChange={(e) => setMarketingConsent(e.target.checked)}
+                          className="w-3.5 h-3.5 cursor-pointer accent-[#A3133A] opacity-70 hover:opacity-100 transition-opacity"
+                        />
+                      </div>
+                      <div
+                        className="text-[10px] sm:text-xs text-left leading-relaxed"
+                        style={{ color: "rgba(255,255,255,0.4)" }}
+                      >
+                        <label htmlFor="marketing-consent" className="cursor-pointer select-none">
+                          I agree to receive marketing messages, updates, and news about Campwork.
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Privacy Policy Consent */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex bg-white/5 border border-white/10 rounded-md p-0.5 mt-0.5">
+                        <input
+                          id="privacy-consent"
+                          type="checkbox"
+                          required
+                          checked={privacyConsent}
+                          onChange={(e) => setPrivacyConsent(e.target.checked)}
+                          className="w-3.5 h-3.5 cursor-pointer accent-[#A3133A] opacity-70 hover:opacity-100 transition-opacity"
+                        />
+                      </div>
+                      <div
+                        className="text-[10px] sm:text-xs text-left leading-relaxed"
+                        style={{ color: "rgba(255,255,255,0.4)" }}
+                      >
+                        <label htmlFor="privacy-consent" className="cursor-pointer select-none">
+                          I have read and agree to the
+                        </label>{" "}
+                        <Link href="/privacy" className="underline hover:text-white transition-colors">Privacy Policy</Link>.
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.form>
             ) : (
               <motion.div
@@ -343,7 +386,7 @@ export default function ComingSoon() {
             className="mt-3 text-xs"
             style={{ color: "rgba(255,255,255,0.2)" }}
           >
-            No spam, ever. Unsubscribe anytime.
+          
           </motion.p>
         </motion.div>
 
@@ -387,15 +430,23 @@ export default function ComingSoon() {
         </motion.div>
       </main>
 
-      {/* ── Footer ── */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4 }}
-        className="relative z-10 py-6 text-center text-xs"
-        style={{ color: "rgba(255,255,255,0.15)", borderTop: "1px solid rgba(255,255,255,0.04)" }}
+        className="relative z-10 py-10 px-6 sm:px-12 text-left sm:text-center"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
       >
-        © {new Date().getFullYear()} Campwork. All rights reserved.
+        <div className="flex flex-col items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-zinc-600">
+            <Link href="/about" className="hover:text-[#A3133A] transition-colors">About</Link>
+            <Link href="/privacy" className="hover:text-[#A3133A] transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-[#A3133A] transition-colors">Terms</Link>
+          </div>
+          <p className="text-[10px] text-zinc-500 tracking-wider">
+            © {new Date().getFullYear()} CAMPWORK. ALL RIGHTS RESERVED.
+          </p>
+        </div>
       </motion.footer>
     </div>
   );

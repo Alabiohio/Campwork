@@ -5,6 +5,9 @@ import type { NextRequest } from "next/server";
 const ALLOWED_PATHS = [
   "/",
   "/favicon.ico",
+  "/privacy",
+  "/terms",
+  "/about",
 ];
 
 // Allow all paths that start with these prefixes (static assets, Next internals)
