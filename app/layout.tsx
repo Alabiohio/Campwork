@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://campwork.vercel.app"),
-  title: "Campwork | Student Freelance Marketplace",
-  description: "The student-only freelance marketplace. Offer your skills, find flexible gigs, and earn income while studying at university.",
-  keywords: ["freelance", "students", "university gigs", "campus jobs", "student work", "freelance marketplace", "campwork"],
+  title: "Campwork | Coming Soon",
+  description: "Something extraordinary is coming. Campwork — the ultimate marketplace for student talent. Get ready to earn, hire, and collaborate like never before.",
+  keywords: ["freelance", "students", "university gigs", "campus jobs", "student work", "freelance marketplace", "campwork", "coming soon"],
   authors: [{ name: "Campwork Team" }],
   openGraph: {
-    title: "Campwork | Student Freelance Marketplace",
-    description: "Freelancing for students, by students. Connect with trusted campus talent today.",
+    title: "Campwork | Coming Soon",
+    description: "Something extraordinary is coming. The future of campus work arrives soon.",
     url: "https://campwork.vercel.app",
     siteName: "Campwork",
     images: [
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Campwork | Student Freelance Marketplace",
-    description: "The student-only freelance marketplace. Offer your skills and earn income.",
+    title: "Campwork | Coming Soon",
+    description: "Something extraordinary is coming. The future of campus work arrives soon.",
     images: ["/assets/ogImg.png"],
   },
   icons: {

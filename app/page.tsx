@@ -1,167 +1,402 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-// Simple component for visual flair
-const Particle = ({ delay, index }: { delay: number; index: number }) => {
-  // deterministic pseudo-random position based on index to avoid SSR/client mismatch
-  const left = `${((index * 37.13) % 100).toFixed(6)}%`;
+// ── Countdown ────────────────────────────────────────────────────────────────
+const LAUNCH_DATE = new Date("2026-03-25T00:00:00Z");
+
+function useCountdown() {
+  const calc = () => {
+    const diff = LAUNCH_DATE.getTime() - Date.now();
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    return {
+      days: Math.floor(diff / 86400000),
+      hours: Math.floor((diff % 86400000) / 3600000),
+      minutes: Math.floor((diff % 3600000) / 60000),
+      seconds: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return time;
+}
+
+// ── Flip digit ───────────────────────────────────────────────────────────────
+function Digit({ value, label }: { value: number; label: string }) {
+  const display = String(value).padStart(2, "0");
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
+        {/* card */}
+        <div
+          className="w-full h-full rounded-2xl flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+          }}
+        >
+          <AnimatePresence mode="popLayout">
+            <motion.span
+              key={display}
+              initial={{ y: -20, opacity: 0, filter: "blur(4px)" }}
+              animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+              exit={{ y: 20, opacity: 0, filter: "blur(4px)" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {display}
+            </motion.span>
+          </AnimatePresence>
+        </div>
+        {/* centre divider line */}
+        <div
+          className="absolute left-0 right-0 top-1/2 -translate-y-px h-px"
+          style={{ background: "rgba(0,0,0,0.25)" }}
+        />
+      </div>
+      <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] uppercase text-zinc-500">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ── Mouse-tracking spotlight ────────────────────────────────────────────────
+function Spotlight() {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 60, damping: 20 });
+  const sy = useSpring(y, { stiffness: 60, damping: 20 });
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      x.set(e.clientX);
+      y.set(e.clientY);
+    };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, [x, y]);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 100 }}
-      animate={{ opacity: [0, 1, 0], y: -100 }}
-      transition={{ duration: 3, delay, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute h-2 w-2 rounded-full bg-primary/30 blur-sm"
-      style={{ left }}
+      className="pointer-events-none fixed inset-0 z-0"
+      style={{
+        background: `radial-gradient(600px circle at ${sx.get()}px ${sy.get()}px, rgba(163,19,58,0.08), transparent 60%)`,
+      }}
     />
   );
-};
+}
 
+// ── Orb ─────────────────────────────────────────────────────────────────────
+function Orb({
+  cx, cy, size, color, duration,
+}: { cx: string; cy: string; size: string; color: string; duration: number }) {
+  return (
+    <motion.div
+      className="absolute rounded-full"
+      style={{ left: cx, top: cy, width: size, height: size, background: color, filter: "blur(80px)", transform: "translate(-50%,-50%)" }}
+      animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
+      transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+// ── Social icon ──────────────────────────────────────────────────────────────
+function SocialLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="group relative p-3 rounded-xl transition-all duration-300"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <span
+        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ background: "rgba(163,19,58,0.15)", border: "1px solid rgba(163,19,58,0.3)" }}
+      />
+      <span className="relative z-10 block h-5 w-5 text-zinc-400 group-hover:text-white transition-colors duration-300">
+        {children}
+      </span>
+    </Link>
+  );
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
 export default function ComingSoon() {
   const [email, setEmail] = useState("");
   const [notified, setNotified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const countdown = useCountdown();
+
+  useEffect(() => setMounted(true), []);
 
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    // Simulate API call
     setTimeout(() => {
       setLoading(false);
       setNotified(true);
       setEmail("");
-    }, 1500);
+    }, 1600);
   };
 
+  const fadeUp = (delay = 0) => ({
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, delay, ease: "easeOut" },
+  });
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-zinc-950 text-white">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-800 via-zinc-950 to-zinc-950" />
-      <div className="absolute top-0 left-0 h-full w-full overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] bg-primary/20 blur-[150px] rounded-full animate-pulse" />
-        {/* Particles */}
-        {[...Array(20)].map((_, i) => (
-          <Particle key={i} delay={i * 0.2} index={i} />
-        ))}
+    <div
+      className="relative min-h-screen w-full overflow-hidden flex flex-col"
+      style={{ background: "#080810", fontFamily: "'Inter', sans-serif" }}
+    >
+      {/* Google font */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');`}</style>
+
+      {/* ── Noise overlay ── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[1] opacity-[0.035]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "200px 200px",
+        }}
+      />
+
+      {/* ── Ambient orbs ── */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <Orb cx="15%" cy="25%" size="600px" color="rgba(163,19,58,0.35)" duration={8} />
+        <Orb cx="85%" cy="70%" size="500px" color="rgba(90,10,35,0.25)" duration={11} />
+        <Orb cx="55%" cy="10%" size="400px" color="rgba(163,19,58,0.12)" duration={14} />
+        <Orb cx="5%" cy="85%" size="300px" color="rgba(163,19,58,0.10)" duration={9} />
+        {/* fine grid */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-        className="container relative z-10 mx-auto px-4 flex flex-col items-center text-center"
+      {/* ── Top bar ── */}
+      <motion.header
+        {...fadeUp(0.1)}
+        className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-8"
       >
-        {/* Logo or Brand Name */}
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8"
+        <Link href="/" className="flex items-center gap-3 group">
+          <img src="/assets/logo1.png" alt="Campwork" className="h-9 w-auto object-contain" />
+        </Link>
+        {/* status pill */}
+        <div
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.10)",
+            color: "rgba(255,255,255,0.5)",
+          }}
         >
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/assets/logo1.png"
-              alt="Campwork"
-              className="h-12 w-auto object-contain"
-            />
-          </Link>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ background: "#A3133A" }} />
+            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#A3133A" }} />
+          </span>
+          In Development
+        </div>
+      </motion.header>
+
+      {/* ── Main content ── */}
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-20 text-center">
+
+        {/* eyebrow */}
+        <motion.div {...fadeUp(0.25)} className="mb-6">
+          <span
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-[0.2em] uppercase"
+            style={{
+              background: "rgba(163,19,58,0.12)",
+              border: "1px solid rgba(163,19,58,0.3)",
+              color: "#e8617c",
+            }}
+          >
+            <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+            Student Freelance Marketplace
+          </span>
         </motion.div>
 
+        {/* headline */}
         <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="mb-6 max-w-4xl text-5xl font-[900] tracking-tight sm:text-7xl lg:text-8xl bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent"
+          {...fadeUp(0.4)}
+          className="mb-6 max-w-5xl text-5xl font-[900] leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl"
+          style={{ color: "rgba(255,255,255,0.92)" }}
         >
-          Something <span className="text-primary">Extraordinary</span> is Coming.
+          Something{" "}
+          <span
+            className="relative inline-block"
+            style={{
+              background: "linear-gradient(135deg, #ff6b8a 0%, #A3133A 50%, #6b0020 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Extraordinary
+          </span>
+          <br />
+          <span style={{ color: "rgba(255,255,255,0.55)" }}>is Coming.</span>
         </motion.h1>
 
+        {/* subheading */}
         <motion.p
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mb-12 max-w-2xl text-lg text-zinc-400 sm:text-xl leading-relaxed"
+          {...fadeUp(0.55)}
+          className="mb-14 max-w-xl text-base sm:text-lg leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.4)" }}
         >
-          We are crafting the ultimate marketplace for student talent.
-          Get ready to earn, hire, and collaborate like never before.
-          <br className="hidden sm:block" />
-          The future of campus work arrives soon.
+          We&apos;re crafting the ultimate marketplace where campus talent meets real opportunity.{" "}
+          Earn, hire, and collaborate — all within your university community.
         </motion.p>
 
-        {/* Notify Form */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="w-full max-w-md"
-        >
-          {!notified ? (
-            <form onSubmit={handleNotify} className="relative flex items-center">
-              <input
-                type="email"
-                required
-                placeholder="Enter your university email"
-                className="w-full rounded-full border border-zinc-800 bg-white/5 px-6 py-4 text-white placeholder:text-zinc-500 backdrop-blur-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="absolute right-2 top-2 bottom-2 rounded-full bg-primary px-6 font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+        {/* ── Countdown ── */}
+        {mounted && (
+          <motion.div {...fadeUp(0.65)} className="mb-16 flex gap-4 sm:gap-6">
+            <Digit value={countdown.days} label="Days" />
+            <Digit value={countdown.hours} label="Hours" />
+            <Digit value={countdown.minutes} label="Minutes" />
+            <Digit value={countdown.seconds} label="Seconds" />
+          </motion.div>
+        )}
+
+        {/* ── Email capture ── */}
+        <motion.div {...fadeUp(0.8)} className="w-full max-w-md mb-20">
+          <AnimatePresence mode="wait">
+            {!notified ? (
+              <motion.form
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -10 }}
+                onSubmit={handleNotify}
+                className="relative flex items-center"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Notify Me"}
-              </button>
-            </form>
-          ) : (
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="rounded-full bg-green-500/10 border border-green-500/20 px-8 py-4 text-green-400 font-medium backdrop-blur-md"
-            >
-              Thanks! You'll be the first to know when we launch. 🚀
-            </motion.div>
-          )}
+                <input
+                  id="notify-email"
+                  type="email"
+                  required
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-full py-4 pl-6 pr-36 text-sm text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(16px)",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(163,19,58,0.6)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-6 text-sm font-bold text-white transition-all duration-200 disabled:opacity-60 flex items-center gap-2"
+                  style={{
+                    background: "linear-gradient(135deg, #c4153d 0%, #8a0e28 100%)",
+                    boxShadow: "0 4px 24px rgba(163,19,58,0.4)",
+                  }}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+                </button>
+              </motion.form>
+            ) : (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-full py-4 px-8 text-sm font-medium"
+                style={{
+                  background: "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.2)",
+                  color: "#4ade80",
+                }}
+              >
+                🚀 You&apos;re on the list! We&apos;ll notify you at launch.
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-3 text-xs"
+            style={{ color: "rgba(255,255,255,0.2)" }}
+          >
+            No spam, ever. Unsubscribe anytime.
+          </motion.p>
         </motion.div>
 
-        {/* Socials / Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="mt-20 flex gap-8 items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
-        >
-          {/* Replace/Add links as needed */}
-          <Link href="https://x.com/campworkapp" className="p-3 bg-white/5 rounded-full hover:bg-primary/20 hover:text-primary transition-colors" aria-label="X (Twitter)">
+        {/* ── Feature pills ── */}
+        <motion.div {...fadeUp(0.95)} className="flex flex-wrap gap-3 justify-center mb-16">
+          {["Earn on Campus", "Hire Student Talent", "Real Gigs · Real Pay", "University Only"].map((f) => (
+            <span
+              key={f}
+              className="px-4 py-2 rounded-full text-xs font-medium tracking-wide"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.35)",
+              }}
+            >
+              {f}
+            </span>
+          ))}
+        </motion.div>
+
+        {/* ── Social links ── */}
+        <motion.div {...fadeUp(1.05)} className="flex gap-3">
+          {/* X / Twitter */}
+          <SocialLink href="https://x.com/campworkapp" label="X (Twitter)">
             <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
               <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
             </svg>
-          </Link>
-          <Link href="https://www.instagram.com/campwork.official" className="p-3 bg-white/5 rounded-full hover:bg-primary/20 hover:text-primary transition-colors" aria-label="Instagram">
+          </SocialLink>
+          {/* Instagram */}
+          <SocialLink href="https://www.instagram.com/campwork.official" label="Instagram">
             <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668-.072-4.948-.197-4.359-2.614-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
             </svg>
-          </Link>
-          <Link href="https://www.facebook.com/share/14XE1SvNqDt/" className="p-3 bg-white/5 rounded-full hover:bg-primary/20 hover:text-primary transition-colors" aria-label="Facebook">
+          </SocialLink>
+          {/* Facebook */}
+          <SocialLink href="https://www.facebook.com/share/14XE1SvNqDt/" label="Facebook">
             <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
             </svg>
-          </Link>
+          </SocialLink>
         </motion.div>
+      </main>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="mt-12 text-sm text-zinc-600"
-        >
-          © {new Date().getFullYear()} Campwork. All rights reserved.
-        </motion.div>
-      </motion.div>
+      {/* ── Footer ── */}
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4 }}
+        className="relative z-10 py-6 text-center text-xs"
+        style={{ color: "rgba(255,255,255,0.15)", borderTop: "1px solid rgba(255,255,255,0.04)" }}
+      >
+        © {new Date().getFullYear()} Campwork. All rights reserved.
+      </motion.footer>
     </div>
   );
 }
