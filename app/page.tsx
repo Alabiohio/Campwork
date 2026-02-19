@@ -386,7 +386,7 @@ export default function ComingSoon() {
             className="mt-3 text-xs"
             style={{ color: "rgba(255,255,255,0.2)" }}
           >
-          
+
           </motion.p>
         </motion.div>
 
@@ -407,8 +407,36 @@ export default function ComingSoon() {
           ))}
         </motion.div>
 
+        {/* ── Partners ── */}
+        <motion.div {...fadeUp(1.0)} className="mb-12 flex flex-col items-center gap-6">
+          <div className="flex flex-wrap justify-center gap-12 sm:gap-20 items-center opacity-40 hover:opacity-100 transition-opacity duration-500">
+            <Link
+              href="https://ag-tech.web.app"
+              target="_blank"
+              className="group"
+            >
+              <img
+                src="/assets/images/agLogo.png"
+                alt="A&G Tech"
+                className="h-22 sm:h-22 w-auto grayscale group-hover:grayscale-0 transition-all duration-300"
+              />
+            </Link>
+            <Link
+              href="https://ohiocodespace.vercel.app"
+              target="_blank"
+              className="group"
+            >
+              <img
+                src="/assets/images/ohio.png"
+                alt="Ohio Codespace"
+                className="h-20 sm:h-20 w-auto grayscale group-hover:grayscale-0 transition-all duration-300"
+              />
+            </Link>
+          </div>
+        </motion.div>
+
         {/* ── Social links ── */}
-        <motion.div {...fadeUp(1.05)} className="flex gap-3">
+        <motion.div {...fadeUp(1.1)} className="flex gap-3">
           {/* X / Twitter */}
           <SocialLink href="https://x.com/campworkapp" label="X (Twitter)">
             <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
