@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import React, { useState, useEffect, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 // ── Countdown ────────────────────────────────────────────────────────────────
 const LAUNCH_DATE = new Date("2026-03-25T00:00:00Z");
@@ -28,7 +31,7 @@ function useCountdown() {
 }
 
 // ── Flip digit ───────────────────────────────────────────────────────────────
-function Digit({ value, label }: { value: number; label: string }) {
+const Digit = memo(function Digit({ value, label }: { value: number; label: string }) {
   const display = String(value).padStart(2, "0");
   return (
     <div className="flex flex-col items-center gap-2">
@@ -43,13 +46,14 @@ function Digit({ value, label }: { value: number; label: string }) {
             boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
           }}
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               key={display}
               initial={{ y: -20, opacity: 0, filter: "blur(4px)" }}
               animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
               exit={{ y: 20, opacity: 0, filter: "blur(4px)" }}
               transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{ willChange: "transform, opacity" }}
             >
               {display}
             </motion.span>
@@ -66,33 +70,25 @@ function Digit({ value, label }: { value: number; label: string }) {
       </span>
     </div>
   );
-}
+});
 
-// ── Mouse-tracking spotlight ────────────────────────────────────────────────
-function Spotlight() {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 60, damping: 20 });
-  const sy = useSpring(y, { stiffness: 60, damping: 20 });
+function TimerDisplay({ fadeUp }: { fadeUp: (delay: number) => any }) {
+  const countdown = useCountdown();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    const move = (e: MouseEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
-    };
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, [x, y]);
+  if (!mounted) return <div className="mb-16 h-[120px]" />; // Placeholder to prevent layout shift
 
   return (
-    <motion.div
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        background: `radial-gradient(600px circle at ${sx.get()}px ${sy.get()}px, rgba(163,19,58,0.08), transparent 60%)`,
-      }}
-    />
+    <motion.div {...fadeUp(0.65)} className="mb-16 flex gap-4 sm:gap-6">
+      <Digit value={countdown.days} label="Days" />
+      <Digit value={countdown.hours} label="Hours" />
+      <Digit value={countdown.minutes} label="Minutes" />
+      <Digit value={countdown.seconds} label="Seconds" />
+    </motion.div>
   );
 }
+
 
 // ── Orb ─────────────────────────────────────────────────────────────────────
 function Orb({
@@ -101,7 +97,15 @@ function Orb({
   return (
     <motion.div
       className="absolute rounded-full"
-      style={{ left: cx, top: cy, width: size, height: size, background: color, filter: "blur(80px)", transform: "translate(-50%,-50%)" }}
+      style={{
+        left: cx,
+        top: cy,
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+        transform: "translate(-50%,-50%)",
+        willChange: "transform, opacity"
+      }}
       animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
       transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
     />
@@ -141,8 +145,6 @@ export default function ComingSoon() {
   const [notified, setNotified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const countdown = useCountdown();
-
   useEffect(() => setMounted(true), []);
 
   const handleNotify = (e: React.FormEvent) => {
@@ -168,19 +170,17 @@ export default function ComingSoon() {
 
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden flex flex-col"
-      style={{ background: "#080810", fontFamily: "'Inter', sans-serif" }}
+      className={`relative min-h-screen w-full overflow-hidden flex flex-col ${inter.className}`}
+      style={{ background: "#080810" }}
     >
-      {/* Google font */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');`}</style>
 
       {/* ── Noise overlay ── */}
       <div
         className="pointer-events-none fixed inset-0 z-[1] opacity-[0.035]"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           backgroundRepeat: "repeat",
-          backgroundSize: "200px 200px",
+          backgroundSize: "128px 128px",
         }}
       />
 
@@ -263,14 +263,7 @@ export default function ComingSoon() {
         </motion.p>
 
         {/* ── Countdown ── */}
-        {mounted && (
-          <motion.div {...fadeUp(0.65)} className="mb-16 flex gap-4 sm:gap-6">
-            <Digit value={countdown.days} label="Days" />
-            <Digit value={countdown.hours} label="Hours" />
-            <Digit value={countdown.minutes} label="Minutes" />
-            <Digit value={countdown.seconds} label="Seconds" />
-          </motion.div>
-        )}
+        <TimerDisplay fadeUp={fadeUp} />
 
         {/* ── Email capture ── */}
         <motion.div {...fadeUp(0.8)} className="w-full max-w-md mb-20">
