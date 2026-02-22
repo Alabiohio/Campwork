@@ -84,3 +84,10 @@ export type Message = {
     is_read: boolean;
     created_at: string;
 };
+
+export type Waitlist = {
+    id: string;
+    email: string;
+    marketing_consent: boolean;
+    created_at: string;
+};

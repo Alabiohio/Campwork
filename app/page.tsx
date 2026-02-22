@@ -147,19 +147,42 @@ export default function ComingSoon() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const handleNotify = (e: React.FormEvent) => {
+  const handleNotify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    if (!marketingConsent || !privacyConsent) {
-      alert("Please agree to the privacy policy and marketing messages to proceed.");
+    if (!privacyConsent) {
+      alert("Please agree to the privacy policy to proceed.");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          marketingConsent,
+          privacyConsent,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotified(true);
+        setEmail("");
+      } else {
+        alert(data.error || "Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error joining waitlist:", error);
+      alert("An error occurred. Please try again later.");
+    } finally {
       setLoading(false);
-      setNotified(true);
-      setEmail("");
-    }, 1600);
+    }
   };
 
   const fadeUp = (delay = 0) => ({
@@ -315,7 +338,6 @@ export default function ComingSoon() {
                         <input
                           id="marketing-consent"
                           type="checkbox"
-                          required
                           checked={marketingConsent}
                           onChange={(e) => setMarketingConsent(e.target.checked)}
                           className="w-3.5 h-3.5 cursor-pointer accent-[#A3133A] opacity-70 hover:opacity-100 transition-opacity"
